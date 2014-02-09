@@ -4,16 +4,13 @@ import (
 	//	"github.com/codegangsta/martini"
 	"net/http"
 	"shirro.com/martini"
+	"strings"
 )
 
 func AuthController(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("X-API-KEY") != "secret123" {
 		w.WriteHeader(http.StatusUnauthorized)
 	}
-}
-
-func BasicNotFound(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
 }
 
 func main() {
@@ -27,10 +24,10 @@ func main() {
 	// */
 	m.Use(AuthController)
 	m.Use(cors.Middleware)
-	m.NotFound(cors.NotFound, BasicNotFound)
+	m.NotFound(MethodNotFound, BasicNotFound)
 
-	m.Get("/hello/:name", func(params martini.Params) string {
-		return "Hello " + params["name"]
+	m.Get("/hello/:name", func(params martini.Params, route martini.Routes, r *http.Request) string {
+		return "Hello " + params["name"] + strings.Join(route.MethodsFor(r.URL.Path), ",")
 	})
 
 	m.Post("/hello/:name", func(params martini.Params) string {
