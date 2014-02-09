@@ -3,9 +3,8 @@ martini-experiments
 
 Playing with martini
 
+Adding support for CORS Access-Control-Allow-Methods headers and Allow headers on a 405 are easy in my old code. With Martini there is no support for getting the methods. 
 
-My main interest in Martini is the DI as I am also doing Angular frontend and my head is in that space at the moment.
+My first attempt used .All() on a route to catch unknown methods and provide either a 405 or CORS on OPTION. This had the disadvantage of having to enter the allowed methods for each path.
 
-My concern is the routing. I have a previous homebrew arrangement built on net/http where I register an interface{} and use reflection to bind appropriately named methods to http methods and the routes are basically map[string]interface{}.
-
-As a result CORS Access-Control-Allow-Methods headers and Allow headers on a 405 are easy in my old code. With Martini, short of scanning the entire route slice to find matching methods I have to provide this information manually to a catchall .All() handler for a route.
+My second attempt was to add support for Route.MethodsFor (PR sent) and use that in a NotFound handler to provide both CORS and 405 responses.
