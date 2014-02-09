@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"sync"
 )
 
 type Cors struct {
@@ -36,8 +37,8 @@ func (cors *Cors) setOrigin(h http.Header, origin string) bool {
 	}
 
 	// Reader lock so we can change the map dynamically
-	OriginsMutex.RLock()
-	defer OriginsMutex.RUnlock()
+	cors.OriginsMutex.RLock()
+	defer cors.OriginsMutex.RUnlock()
 
 	// Empty Origins map allows all domains
 	if len(cors.Origins) == 0 {
@@ -68,7 +69,7 @@ func (cors *Cors) Handler(methods string) func(http.ResponseWriter, *http.Reques
 	return func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
 		if r.Method == "OPTIONS" {
-			cors.setHeaders(w)
+			cors.setHeaders(h)
 		} else {
 			h.Set("Allow", methods)
 			w.WriteHeader(http.StatusMethodNotAllowed)
