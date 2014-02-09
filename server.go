@@ -19,7 +19,7 @@ func BasicNotFound(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	m := martini.Classic()
-	cors := &Cors{Headers: StandardHeaders, Martini: m}
+	cors := &Cors{Headers: StandardHeaders}
 	/*
 		cors.Origins = map[string]struct{}{
 			"http://127.0.0.1": struct{}{},

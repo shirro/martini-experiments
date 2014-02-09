@@ -12,7 +12,6 @@ type Cors struct {
 	Origins      map[string]struct{}
 	HeadersMutex sync.RWMutex
 	Headers      map[string]string
-	Martini      martini.Router
 }
 
 var StandardHeaders = map[string]string{
@@ -37,32 +36,30 @@ func stringMethods(methods []string) string {
 	return strings.Join(methods, ",")
 }
 
-func (cors *Cors) NotFound(w http.ResponseWriter, r *http.Request) {
+func (cors *Cors) NotFound(w http.ResponseWriter, r *http.Request, routes martini.Routes) {
 	// For if we have a patched Martini and can find all methods for path
-	if cors.Martini != nil {
-		methods := cors.Martini.Methods(r.URL.Path)
+	methods := routes.MethodsFor(r.URL.Path)
 
-		// No methods is a 404 - don't handle here
-		if len(methods) == 0 {
-			return
-		}
-
-		h := w.Header()
-
-		// Add cors headers if this is an OPTIONS request
-		if r.Method == "OPTIONS" {
-			cors.setHeaders(h)
-			h.Set("Access-Control-Allow-Methods", stringMethods(methods))
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		// If we have a path with some methods, and our method isn't in it
-		// and isn't OPTIONS return a 405 with Allow header
-		h.Set("Allow", stringMethods(methods))
-		w.WriteHeader(http.StatusMethodNotAllowed)
-
+	// No methods is a 404 - don't handle here
+	if len(methods) == 0 {
+		return
 	}
+
+	h := w.Header()
+
+	// Add cors headers if this is an OPTIONS request
+	if r.Method == "OPTIONS" {
+		cors.setHeaders(h)
+		h.Set("Access-Control-Allow-Methods", stringMethods(methods))
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// If we have a path with some methods, and our method isn't in it
+	// and isn't OPTIONS return a 405 with Allow header
+	h.Set("Allow", stringMethods(methods))
+	w.WriteHeader(http.StatusMethodNotAllowed)
+
 }
 
 func (cors *Cors) setOrigin(h http.Header, origin string) bool {
