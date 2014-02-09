@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/codegangsta/martini"
+	//	"github.com/codegangsta/martini"
 	"net/http"
+	"shirro.com/martini"
 )
 
 func AuthController(w http.ResponseWriter, r *http.Request) {
@@ -11,16 +12,30 @@ func AuthController(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func BasicNotFound(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
+}
+
 func main() {
-	cors := &Cors{Headers: StandardHeaders}
+
 	m := martini.Classic()
+	cors := &Cors{Headers: StandardHeaders, Martini: m}
+	/*
+		cors.Origins = map[string]struct{}{
+			"http://127.0.0.1": struct{}{},
+		}
+	// */
 	m.Use(AuthController)
 	m.Use(cors.Middleware)
+	m.NotFound(cors.NotFound, BasicNotFound)
 
 	m.Get("/hello/:name", func(params martini.Params) string {
 		return "Hello " + params["name"]
 	})
-	m.Any("/hello/**", cors.Handler("GET,OPTIONS"))
+
+	m.Post("/hello/:name", func(params martini.Params) string {
+		return "Posting"
+	})
 
 	m.Run()
 }
